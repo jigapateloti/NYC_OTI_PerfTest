@@ -1,29 +1,30 @@
-# LRE Smoke Test – Automated GitHub Actions Workflow
+# LRE Smoke Test – Trend Report Automation Workflow
 
-This repository contains a fully automated GitHub Actions workflow that executes a **LoadRunner Enterprise (LRE) Smoke Test**, generates a **Trend Report**, downloads the **PDF report**, uploads it as a **GitHub Artifact**, and sends a **Microsoft Teams notification** with run details.
-
-The workflow is designed for **repeatable, stable, production‑grade automation** and runs on a **self‑hosted runner** inside the LRE network.
+This repository contains a GitHub Actions workflow that automatically executes a **LoadRunner Enterprise (LRE) smoke test**, generates a **Trend Report**, downloads the **Trend Report PDF**, uploads it as a **GitHub Artifact**, and sends a **Teams notification** with run details. The workflow is designed for reliability, repeatability, and seamless integration with LRE environments.
 
 ---
 
-## 📌 Overview
+## 📌 What This Workflow Does
 
-This workflow performs the following end‑to‑end steps:
+This workflow performs the following automated steps:
 
 1. Authenticates to LoadRunner Enterprise (LRE)
 2. Starts a new LRE test run
-3. Polls the run status until completion
-4. Waits for analysis data to be generated
-5. Creates a **unique Trend Report** (RunID + timestamp)
+3. Polls the run status until it reaches **Finished** or **Failed**
+4. Waits for LRE to generate analysis data
+5. Creates a **unique Trend Report** using:
+   - Run ID  
+   - Timestamp  
 6. Adds the run (and optional baseline run) to the Trend Report
 7. Downloads the Trend Report PDF
-8. Applies a **2‑minute cooling period** to ensure report stability
+8. Applies a **2‑minute cooling period** to ensure the PDF is fully generated
 9. Uploads the final report as a GitHub Artifact
-10. Sends a **Microsoft Teams notification** with:
-   - Run ID  
-   - Trend Report ID  
-   - Artifact path  
-   - Link to the GitHub Actions run  
+10. Sends a **Teams notification** containing:
+    - Run ID  
+    - Trend Report ID  
+    - Artifact path  
+    - GitHub run link  
+    - Status message  
 
 ---
 
@@ -34,17 +35,17 @@ This workflow is manually triggered using:
 
 Run it from:
 
-**GitHub → Actions → LRE Smoke Test → Run workflow**
+**GitHub → Actions → LRE Smoke Test Trend Report → Run workflow**
 
 ---
 
 ## 🔐 Required Secrets
 
-| Secret Name     | Purpose |
-|-----------------|---------|
-| `LRE_USERNAME`  | LRE API username |
-| `LRE_PASSWORD`  | LRE API password |
-| `TEAMS_WEBHOOK` | Incoming Teams webhook URL |
+| Secret Name              | Purpose |
+|--------------------------|---------|
+| `LRE_USERNAME`           | LRE API username |
+| `LRE_PASSWORD`           | LRE API password |
+| `TEAMS_FLOW_WEBHOOK_URL` | Teams webhook URL for notifications |
 
 ---
 
@@ -52,7 +53,7 @@ Run it from:
 
 | Variable | Description |
 |---------|-------------|
-| `LRE_BASE_URL` | Base URL of LRE server |
+| `LRE_BASE_URL` | Base URL of the LRE server |
 | `LRE_DOMAIN` | LRE domain name |
 | `LRE_PROJECT` | LRE project name |
 | `LRE_TEST_ID` | Test ID to execute |
@@ -64,59 +65,58 @@ Run it from:
 
 ---
 
-## 🧠 How the Workflow Works
+## 🧠 Workflow Summary
 
-### 1. **Authentication**
+### **1. Authentication**
 The workflow logs into LRE using the REST API and establishes a persistent session.
 
-### 2. **Start Test Run**
+### **2. Start Test Run**
 A new test run is created and the returned **Run ID** is stored.
 
-### 3. **Poll Run Status**
+### **3. Poll Run Status**
 The workflow checks the run state every 20 seconds until it becomes:
 
 - `Finished`
 - `Failed`
 
-### 4. **Cooling Period**
+### **4. Cooling Period**
 A 60‑second wait ensures LRE has generated analysis data.
 
-### 5. **Create Trend Report**
+### **5. Create Trend Report**
 A unique Trend Report name is generated:
 
 
-This prevents duplicate name collisions.
+This prevents duplicate Trend Report name collisions.
 
-### 6. **Add Run(s) to Trend Report**
+### **6. Add Run(s) to Trend Report**
 The workflow adds:
-
 - The current run  
 - Optional baseline run  
 
-### 7. **Download Trend Report PDF**
+### **7. Download Trend Report PDF**
 The PDF is downloaded from the TrendReports API.
 
-### 8. **2‑Minute Cooling Period**
-Ensures the PDF is fully generated and stable.
+### **8. 2‑Minute Cooling Period**
+Ensures the PDF is fully generated and stable before uploading.
 
-### 9. **Artifact Handling**
+### **9. Artifact Handling**
 The workflow checks:
-
 - If the file is already a ZIP → upload directly  
 - If it is a PDF → zip it once  
 
 This prevents nested ZIP files.
 
-### 10. **Upload Artifact**
-The final ZIP or PDF is uploaded as a GitHub Artifact.
+### **10. Upload Artifact**
+The final ZIP or PDF is uploaded as a GitHub Artifact named:
 
-### 11. **Teams Notification**
+
+### **11. Teams Notification**
 A Teams message is sent containing:
-
 - Run ID  
 - Trend Report ID  
 - Artifact path  
-- Link to the GitHub Actions run  
+- GitHub run link  
+- Timestamp  
 
 ---
 
@@ -126,9 +126,9 @@ A Teams message is sent containing:
 |--------|-------------|
 | `runId` | LRE Run ID |
 | `trendId` | Trend Report ID |
-| `artifactPath` | Path to uploaded artifact |
+| `artifactPath` | Path to the uploaded artifact |
 
-These are used in the Teams notification step.
+These outputs are used in the Teams notification step.
 
 ---
 
@@ -145,7 +145,7 @@ The runner must:
 
 ## 📌 Summary
 
-This workflow provides a **fully automated**, **repeatable**, and **production‑grade** pipeline for:
+This workflow provides a fully automated, repeatable, and production‑ready pipeline for:
 
 - Running LRE smoke tests  
 - Generating Trend Reports  
